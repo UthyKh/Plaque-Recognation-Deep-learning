@@ -12,6 +12,7 @@ RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 USER appuser
 WORKDIR /home/appuser
 
+
 ENV PATH="/home/appuser/.local/bin:${PATH}"
 
 # Upgrade pip
@@ -30,15 +31,19 @@ RUN git clone https://github.com/facebookresearch/detectron2 detectron2_repo
 RUN pip install --user -e detectron2_repo
 
 # Set a fixed model cache directory.
+USER root
 RUN mkdir /fastapi
+USER appuser
 
 COPY requirements.txt /fastapi
+RUN mkdir /home/appuser/fastapi
 
-WORKDIR /fastapi
+
+WORKDIR /home/appuser/fastapi
 
 RUN pip install --user -r requirements.txt
 
-COPY . /fastapi
+COPY . /home/appuser/fastapi
 
 EXPOSE 8000
 

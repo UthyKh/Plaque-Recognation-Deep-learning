@@ -36,10 +36,8 @@ RUN mkdir /fastapi
 USER appuser
 
 COPY requirements.txt /fastapi
-RUN mkdir /home/appuser/fastapi
 
-
-WORKDIR /home/appuser/fastapi
+WORKDIR /fastapi
 
 RUN pip install --user -r requirements.txt
 

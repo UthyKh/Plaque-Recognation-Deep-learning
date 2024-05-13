@@ -43,6 +43,8 @@ RUN pip install --user -r requirements.txt
 
 COPY . /home/appuser/fastapi
 
+# Set the correct working directory
+WORKDIR /home/appuser/fastapi
 EXPOSE 8000
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

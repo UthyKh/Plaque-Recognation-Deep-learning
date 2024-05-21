@@ -17,8 +17,8 @@ sys.path.insert(0, detectron2)
 plate_model = PlateDetector()
 ocr_model = PlateOCR()
 
-app = FastAPI(title="MoroccoAI Data Challenge",
-              description='''Automatic Number Plate Recognition (ANPR) in Morocco Licensed Vehicles.''',
+app = FastAPI(title="Dekra data recognation",
+              description='''Automatic Number Plate Recognition (ANPR) in Morocco Dekra Licensed Vehicles.''',
               version="0.1.0",
               )
 

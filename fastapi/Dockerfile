@@ -1,50 +1,34 @@
-FROM python:3.8-slim
+FROM python:3.8-slim  # Use a lightweight Python base image
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive  
+
 RUN apt-get update && apt-get install -y \
-    python3-opencv ca-certificates python3-dev git wget sudo build-essential
-RUN ln -sv /usr/bin/python3 /usr/bin/python
+    python3-dev build-essential wget git  # Essential development tools
 
-# create a non-root user
 ARG USER_ID=1000
-RUN useradd -m --no-log-init --system --uid ${USER_ID} appuser -g sudo
-RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+RUN useradd -m -s /bin/bash --no-log-init --system --uid $USER_ID appuser
+RUN echo "appuser:your_strong_password" | chpasswd <<< /dev/null  
+ENV PATH="/home/appuser/.local/bin:$PATH"  
 USER appuser
 WORKDIR /home/appuser
 
+RUN python -m ensurepip --upgrade
 
-ENV PATH="/home/appuser/.local/bin:${PATH}"
+RUN pip install torch==1.10 torchvision==0.11.1 -f https://download.pytorch.org/whl/cu111/torch_stable.html \
+                tensorboard cmake cached-property 'git+https://github.com/facebookresearch/fvcore'
 
-# Upgrade pip
-RUN pip install --upgrade pip
-
-# install dependencies
-# See https://pytorch.org/ for other options if you use a different version of CUDA
-RUN pip install --user tensorboard cmake cached-property
-RUN pip install --user torch==1.10 torchvision==0.11.1 -f https://download.pytorch.org/whl/cu111/torch_stable.html
-
-RUN pip install --user 'git+https://github.com/facebookresearch/fvcore'
-
-# install detectron2
-RUN git clone https://github.com/facebookresearch/detectron2 detectron2_repo
+RUN git clone https://github.com/facebookresearch/detectron2 detectron2_repo || true  # Suppress non-fatal errors
 
 RUN pip install --user -e detectron2_repo
 
-# Set a fixed model cache directory.
-USER root
-RUN mkdir /fastapi
-USER appuser
+RUN mkdir /fastapi  # Consider a user-specific directory
 
 COPY requirements.txt /fastapi
 
-WORKDIR /fastapi
-
+WORKDIR /fastapi  # Use the intended working directory where your app resides
 RUN pip install --user -r requirements.txt
 
-COPY . /home/appuser/fastapi
+COPY . .
 
-# Set the correct working directory
-WORKDIR /home/appuser/fastapi
 EXPOSE 8000
-
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
